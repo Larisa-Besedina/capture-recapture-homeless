@@ -1,0 +1,10 @@
+# Версии зафиксированы: в pandas 3.x изменилось поведение pd.Categorical
+# при несовпадении уровней, а в statsmodels — формат get_prediction.
+pandas>=2.0,<2.3
+numpy>=1.24,<2.1
+scipy>=1.10
+statsmodels>=0.14,<0.15
+patsy>=0.5
+matplotlib>=3.7
+tqdm>=4.65
+jupyter>=1.0
