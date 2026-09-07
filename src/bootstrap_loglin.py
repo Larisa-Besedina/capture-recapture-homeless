@@ -5,9 +5,8 @@
 counts, модель переподгоняется, N пересчитывается. Квантили бутстреп-
 распределения дают доверительный интервал.
 
-Агрегаты (пол, total) считаются ВНУТРИ каждой итерации, и уже затем берутся
-квантили от суммы: сумма квантилей отдельных страт не равна квантилю их
-суммы и завысила бы ширину интервала.
+Агрегаты (пол, total) считаются внутри каждой итерации, и уже затем берутся
+квантили от суммы.
 """
 
 from __future__ import annotations
@@ -48,15 +47,15 @@ def bootstrap_loglinear(model_info: dict, source_vars=None, covariate_vars=None,
     max_n_factor = config.BOOT_MAX_N_FACTOR if max_n_factor is None else max_n_factor
     min_success_share = (config.BOOT_MIN_SUCCESS_SHARE if min_success_share is None
                          else min_success_share)
-    rng = rng or np.random.default_rng(config.SEED)
+    if rng is None:
+        rng = np.random.default_rng()   # не фиксируется, см. config.py
 
     result = model_info["result_object"]
     train_data = model_info["train_data"]
     formula = model_info["formula"]
     observed_total = model_info["obs"]
 
-    # mu привязываем к индексу train_data: выравнивание по позиции строк
-    # ненадёжно, если где-то поменяется их порядок.
+    # mu привязываем к индексу train_data
     mu = result.fittedvalues.reindex(train_data.index)
     if mu.isna().any():
         raise ValueError("fittedvalues не выравниваются с train_data по индексу")
@@ -154,7 +153,6 @@ def collect_loglinear_rows(season, model_info: dict, ci: dict | None,
     rows = []
 
     def _row(strata, sex, age, obs, unobs, est, bounds):
-        # отсутствующий интервал — это NaN, а не ноль
         lo, hi = (np.nan, np.nan) if bounds is None else bounds
         return {
             "year_season": season, "strata": strata, "sex": sex, "age": age,

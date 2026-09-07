@@ -6,10 +6,6 @@
   * если выше оценки насыщенной модели — берём насыщенную;
   * иначе оставляем Чао.
 
-Это эвристика для сведения трёх оценок к одной, а не статистическая
-процедура: номинальное покрытие итогового интервала не гарантировано.
-Формулируйте это в README и в тексте статьи прямым текстом.
-
 Реализация:
   * страты и агрегаты (пол, total) обрабатываются одним кодом;
   * предпосылка nonsat <= sat проверяется и помечается флагом
@@ -42,7 +38,6 @@ def _wide(all_estimates: pd.DataFrame) -> pd.DataFrame:
                            ("loglin_nonsaturated", "nonsat"),
                            ("loglin_saturated", "sat")):
         sub = all_estimates.loc[all_estimates["method"] == method, keep].copy()
-        # Иначе merge молча размножит строки
         if sub.duplicated(subset=KEYS).any():
             raise ValueError(
                 f"Метод {method} встречается несколько раз для одной пары "
@@ -123,7 +118,6 @@ def summary_by_season(all_estimates: pd.DataFrame, strata: str = "total") -> pd.
         row = {"season": season}
         for _, r in group.iterrows():
             name = r["method"].replace("loglin_", "")
-            # round_half_up вместо f-string :.0f — тот округляет половины к чётному
             est = int(round_half_up(r["est"]))
             lo = int(round_half_up(r["ci_lower"]))
             hi = int(round_half_up(r["ci_upper"]))

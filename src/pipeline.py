@@ -1,8 +1,5 @@
 """
 Сборка анализа по всем сезонам.
-
-Ноутбук вызывает функции отсюда — вся логика ветвления и агрегации живёт
-в модулях, а не в ячейках.
 """
 
 from __future__ import annotations
@@ -17,7 +14,7 @@ from src.bootstrap_loglin import bootstrap_loglinear, collect_loglinear_rows
 
 
 def run_loglinear(df: pd.DataFrame, source_vars=None, covariate_vars=None,
-                  n_boot: int | None = None, seed: int | None = None,
+                  n_boot: int | None = None,
                   verbose: bool = True) -> dict[str, pd.DataFrame]:
     """
     Полный лог-линейный анализ по всем сезонам.
@@ -31,7 +28,6 @@ def run_loglinear(df: pd.DataFrame, source_vars=None, covariate_vars=None,
     source_vars = list(source_vars or config.SOURCE_VARS)
     covariate_vars = list(covariate_vars if covariate_vars is not None else config.COVARIATE_VARS)
     n_boot = config.N_BOOT if n_boot is None else n_boot
-    seed = config.SEED if seed is None else seed
 
     estimates, models, coefficients, top_models = [], [], [], []
 
@@ -75,10 +71,9 @@ def run_loglinear(df: pd.DataFrame, source_vars=None, covariate_vars=None,
                 loglinear.extract_coefficients(best, season, best["model"])
             )
 
-            # Свой генератор на каждую пару (сезон, метод): результат
-            # воспроизводим и не зависит от порядка вызовов
-            rng = np.random.default_rng([seed, hash(str(season)) % 2**32,
-                                         0 if method.endswith("saturated") else 1])
+            # Свой генератор на каждую пару (сезон, метод), чтобы результат
+            # не зависел от порядка вызовов.
+            rng = np.random.default_rng()
             ci = bootstrap_loglinear(best, source_vars, covariate_vars,
                                      n_boot=n_boot, rng=rng)
 
@@ -116,16 +111,15 @@ def run_loglinear(df: pd.DataFrame, source_vars=None, covariate_vars=None,
     }
 
 
-def run_chao_zelterman(df: pd.DataFrame, source_vars=None, n_boot: int | None = None,
-                       seed: int | None = None) -> pd.DataFrame:
+def run_chao_zelterman(df: pd.DataFrame, source_vars=None,
+                       n_boot: int | None = None) -> pd.DataFrame:
     """Оценки Чао и Зельтермана по всем сезонам."""
     source_vars = list(source_vars or config.SOURCE_VARS)
     n_boot = config.N_BOOT if n_boot is None else n_boot
-    seed = config.SEED if seed is None else seed
 
     parts = []
     for season in tqdm(sorted(df["season"].unique()), desc="сезоны", smoothing=0):
-        rng = np.random.default_rng([seed, hash(str(season)) % 2**32, 2])
+        rng = np.random.default_rng()
         parts.append(chao_zelterman.bootstrap_chao_zelterman(
             df[df["season"] == season], source_vars, n_boot=n_boot, rng=rng
         ))

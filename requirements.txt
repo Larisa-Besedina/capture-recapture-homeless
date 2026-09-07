@@ -1,3 +1,4 @@
+# Python 3.9 (результаты получены на 3.9.18, Windows)
 # Версии зафиксированы: в pandas 3.x изменилось поведение pd.Categorical
 # при несовпадении уровней, а в statsmodels — формат get_prediction.
 pandas>=2.0,<2.3
@@ -8,3 +9,4 @@ patsy>=0.5
 matplotlib>=3.7
 tqdm>=4.65
 jupyter>=1.0
+openpyxl>=3.1

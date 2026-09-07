@@ -1,7 +1,7 @@
 """
 Предварительный анализ: описательные метрики по стратам.
 
-Считаются частоты захвата f1/f2/f3, охват каждого источника и попарные
+Считаются частоты встречаемости f1/f2/f3, охват каждого источника и попарные
 пересечения. Все величины возвращаются без округления — округление
 происходит только на этапе отображения (format_metrics, formatting.py).
 """
@@ -20,10 +20,6 @@ from src import formatting
 def strata_metrics(df_strata: pd.DataFrame, source_vars=None) -> dict:
     """
     Метрики одной страты по таблице сопряжённости.
-
-    Ячейка (0,0,0) не входит в n: она ненаблюдаема. Валидация в data_io
-    гарантирует, что её count равен нулю, но исключаем её явно, чтобы
-    результат не зависел от этого предположения.
     """
     source_vars = list(source_vars or config.SOURCE_VARS)
 
@@ -39,7 +35,6 @@ def strata_metrics(df_strata: pd.DataFrame, source_vars=None) -> dict:
         "f1": f1,
         "f2": f2,
         "f3": f3,
-        # np.nan вместо ZeroDivisionError / нуля: f2 = 0 бывает в малых стратах
         "f1_share": f1 / n_total if n_total > 0 else np.nan,
         "f1_f2": f1 / f2 if f2 > 0 else np.nan,
     }

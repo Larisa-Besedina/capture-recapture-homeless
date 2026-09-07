@@ -1,9 +1,6 @@
 """
 Чтение, валидация и сохранение данных.
 
-Валидация здесь — не формальность: почти все "тихие" ошибки в анализе
-capture-recapture возникают на входе (несовпадение написания уровней,
-ненулевая ячейка (0,0,0), дубликаты профилей захвата).
 """
 
 from __future__ import annotations
@@ -140,9 +137,6 @@ def save_table(df: pd.DataFrame, path, round_output: bool = True, **kwargs) -> N
 def save_table_xlsx(df: pd.DataFrame, path, round_output: bool = True,
                     sheet_name: str = "оценки") -> None:
     """Сохраняет таблицу в xlsx (только данные, без формул).
-
-    Кириллица в xlsx хранится в UTF-8 всегда — отдельная кодировка не нужна,
-    в Excel читается корректно. Округление то же, что при сохранении в CSV.
     """
     out = round_for_display(df) if round_output else df
     out.to_excel(path, index=False, sheet_name=sheet_name)

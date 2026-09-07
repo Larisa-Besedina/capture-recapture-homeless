@@ -3,7 +3,7 @@
 
 Логика: модель Пуассона подгоняется по наблюдаемым ячейкам таблицы
 сопряжённости (все, кроме (0,0,0)), затем предсказанное значение для
-ячейки (0,0,0) в каждой страте берётся как оценка ненаблюдённых.
+ячейки (0,0,0) в каждой страте берётся как оценка ненаблюдаемой численности.
 
 """
 
@@ -88,7 +88,7 @@ def fit_model(df: pd.DataFrame, formula: str, source_vars=None, covariate_vars=N
     Подгоняет одну лог-линейную модель и возвращает оценку N.
 
     df должен быть уже подготовлен prepare_for_glm.
-    Все числовые характеристики возвращаются БЕЗ округления.
+    Все числовые характеристики возвращаются без округления.
     """
     source_vars = list(source_vars or config.SOURCE_VARS)
     covariate_vars = list(covariate_vars or [])
@@ -179,7 +179,7 @@ def model_selection(df_season: pd.DataFrame, source_vars=None, covariate_vars=No
     Перебирает все модели для одного сезона.
 
     Возвращает (таблица моделей, диагностика перебора).
-    Таблица отсортирована по BIC (по неокруглённому значению — FIX).
+    Таблица отсортирована по BIC.
     """
     source_vars = list(source_vars or config.SOURCE_VARS)
     covariate_vars = list(covariate_vars if covariate_vars is not None else config.COVARIATE_VARS)
@@ -191,8 +191,6 @@ def model_selection(df_season: pd.DataFrame, source_vars=None, covariate_vars=No
 
     fitted, failures = [], {}
 
-    # предупреждения statsmodels подавляем локально, только на время перебора
-    # через warnings.filterwarnings("ignore") на весь ноутбук
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         for name, spec in tqdm(models.items(), desc="  перебор моделей",
@@ -225,7 +223,7 @@ def model_selection(df_season: pd.DataFrame, source_vars=None, covariate_vars=No
         table = table[table["converged"]]
     diagnostics["n_dropped_not_converged"] = n_before - len(table)
 
-    # фильтр по неокруглённому dev_df_ratio, чтобы порог был точным
+    # фильтр по неокруглённому dev_df_ratio
     table = table[(table["dev_df_ratio"] < max_dev_df_ratio) | table["dev_df_ratio"].isna()]
 
     table = table.sort_values("bic", kind="mergesort").reset_index(drop=True)
@@ -322,10 +320,6 @@ _DISPLAY_COLUMNS = {
 def format_model_table(table: pd.DataFrame, strip_prefix: bool = True) -> pd.DataFrame:
     """
     Компактный вид таблицы моделей.
-
-    Возвращает DataFrame — в ноутбуке его нужно показывать через display(),
-    а не print(): текстовый вывод переносится по ширине ячейки и становится
-    нечитаемым, HTML-таблица прокручивается по горизонтали.
     """
     out = table.copy()
     out["coverage"] = (out["obs"] / out["est"] * 100).where(out["est"] > 0)
